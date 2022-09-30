@@ -1,0 +1,116 @@
+ <!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meu dApp</title>
+
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    div {
+      width: 20%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    span,
+    label {
+      margin: .5rem;
+    }
+
+    button {
+      width: 100%;
+      margin: 10px 0px 5px 0px;
+    }
+  </style>
+
+  <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+
+  <script>
+    // Criando variaveis
+    let MoodContract;
+    let signer;
+    // Se conectando a rede goerli atraves da biblioteca ethers:
+    const provider = new ethers.providers.Web3Provider(window.ethereum, "goerli");
+
+    // Endereço do contrato MoodDiary
+    const MoodContractAddress = "0x716407dcA91FcF0f53B519d167690a73493ec9CD";
+    // Informações ABI do contrato MoodDiary
+    const MoodContractABI = [
+      {
+        inputs: [],
+        name: "getMood",
+        outputs: [
+          {
+            internalType: "string",
+            name: "",
+            type: "string",
+          },
+        ],
+        stateMutability: "view",
+        type: "function",
+      },
+      {
+        inputs: [
+          {
+            internalType: "string",
+            name: "_mood",
+            type: "string",
+          },
+        ],
+        name: "setMood",
+        outputs: [],
+        stateMutability: "nonpayable",
+        type: "function",
+      },
+    ];
+
+    // Solicitando acesso à carteira do usuário
+    provider.send("eth_requestAccounts", []).then(() => {
+      provider.listAccounts().then((accounts) => {
+        //se conectando ao assinate da transação da metamáscara  
+        signer = provider.getSigner(accounts[0]);
+        MoodContract = new ethers.Contract(
+          MoodContractAddress,
+          MoodContractABI,
+          signer
+        );
+      });
+    });
+
+    // Chamando as funções do smart contract de maneira assíncrona
+    async function getMood() {
+      const getMoodPromise = MoodContract.getMood();
+      const Mood = await getMoodPromise;
+      document.querySelector("#getMood").innerHTML = "Seu humor está: " + Mood;
+      console.log(Mood);
+    }
+
+    async function setMood() {
+      const mood = document.getElementById("mood").value;
+      const setMoodPromise = MoodContract.setMood(mood);
+      await setMoodPromise;
+    }
+  </script>
+</head>
+
+<body>
+  <div>
+    <h1>Esse é meu dApp!</h1>
+    <p>Aqui podemos definir ou obter nosso humor:</p>
+    <label for="mood">Como está seu humor?</label>
+    <input type="text" id="mood" />
+    <button onclick="setMood()">Definir humor</button>
+    <button onclick="getMood()">Resgatar humor</button>
+    <span id="getMood"></span>
+  </div>
+</body>
+
+</html>
